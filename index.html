@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Widget Chat IA</title>
+    <style>
+        /* Estilo do Balão Flutuante */
+        #chat-widget-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            z-index: 9999;
+            transition: transform 0.2s;
+        }
+        #chat-widget-button:hover { transform: scale(1.1); }
+
+        /* Janela do Chat */
+        #chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            height: 450px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            display: none;
+            flex-direction: column;
+            font-family: Arial, sans-serif;
+            z-index: 9999;
+            overflow: hidden;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* Topo do Chat */
+        #chat-header {
+            background-color: #2563eb;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Área de Mensagens */
+        #chat-messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Estilo das Mensagens (Balões) */
+        .message {
+            padding: 10px 14px;
+            border-radius: 8px;
+            max-width: 80%;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        .user-message {
+            background-color: #2563eb;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot-message {
+            background-color: #e2e8f0;
+            color: #1e293b;
+            align-self: flex-start;
+        }
+
+        /* Rodapé de Envio */
+        #chat-input-container {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #e5e7eb;
+            background: white;
+        }
+        #chat-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            outline: none;
+        }
+        #chat-send {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            margin-left: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        #chat-send:hover { background-color: #1d4ed8; }
+    </style>
+</head>
+<body>
+
+    <div id="chat-widget-button" onclick="toggleChat()">💬</div>
+
+    <div id="chat-container">
+        <div id="chat-header">
+            <span>Suporte do Curso 🤖</span>
+            <span style="cursor:pointer;" onclick="toggleChat()">✖</span>
+        </div>
+        <div id="chat-messages">
+            <div class="message bot-message">Olá! Sou o assistente virtual do curso. Como posso te ajudar hoje?</div>
+        </div>
+        <div id="chat-input-container">
+            <input type="text" id="chat-input" placeholder="Digite sua dúvida aqui..." onkeypress="handleKeyPress(event)">
+            <button id="chat-send" onclick="enviarMensagem()">Enviar</button>
+        </div>
+    </div>
+
+    <script>
+        // Função para abrir e fechar a janelinha
+        function toggleChat() {
+            const container = document.getElementById('chat-container');
+            container.style.display = container.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        // Enviar com a tecla Enter
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') enviarMensagem();
+        }
+
+        // Função que conversa com a sua API Python
+        async function enviarMensagem() {
+            const inputElement = document.getElementById('chat-input');
+            const messageText = inputElement.value.trim();
+            if (!messageText) return;
+
+            const messagesContainer = document.getElementById('chat-messages');
+
+            // 1. Adiciona a mensagem do aluno na tela
+            messagesContainer.innerHTML += `<div class="message user-message">${messageText}</div>`;
+            inputElement.value = '';
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            // Adiciona um balão temporário de "Pensando..."
+            const tempBotId = 'temp-bot-' + Date.now();
+            messagesContainer.innerHTML += `<div class="message bot-message" id="${tempBotId}">🤖 Pensando...</div>`;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+            try {
+                // 2. Chamar o seu servidor FastAPI local
+                const response = await fetch('http://127.0.0.1:8000/perguntar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ texto: messageText })
+                });
+
+                const data = await response.json();
+                
+                // 3. Substitui o "Pensando..." pela resposta real do Gemini
+                document.getElementById(tempBotId).innerText = data.resposta;
+            } catch (error) {
+                document.getElementById(tempBotId).innerText = "⚠️ Erro ao conectar com o servidor de IA. Certifique-se de que o app.py está rodando no terminal.";
+            }
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+    </script>
+</body>
+</html>
