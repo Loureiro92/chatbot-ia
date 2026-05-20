@@ -161,7 +161,7 @@
 
             try {
                 // 2. Chamar o seu servidor FastAPI local
-                const response = await fetch('http://127.0.0.1:8000/perguntar', {
+                const response = await fetch('https://chatbot-ia-78g7.onrender.com/perguntar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ texto: messageText })
