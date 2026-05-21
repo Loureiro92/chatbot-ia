@@ -3,7 +3,10 @@ uvicorn
 python-dotenv
 langchain-community
 langchain-text-splitters
-chromadb
-langchain-google-genai
 langchain-core
+langchain-google-genai>=2.0.0
+google-genai>=1.0.0
+faiss-cpu
 pydantic
+requests
+numpy

@@ -5,10 +5,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
-from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.embeddings import Embeddings
+from google import genai
+from google.genai import types
 
 load_dotenv()
 app = FastAPI()
@@ -29,6 +32,30 @@ EVOLUTION_API_KEY = "ChaveOtica2026"
 INSTANCE_NAME = "otica_bot"
 # =========================================================================
 
+# ✅ Classe de embedding usando nova biblioteca google-genai
+class GeminiEmbeddings(Embeddings):
+    def __init__(self, api_key: str):
+        self.client = genai.Client(api_key=api_key)
+    
+    def embed_documents(self, texts):
+        embeddings = []
+        for text in texts:
+            result = self.client.models.embed_content(
+                model="text-embedding-004",
+                contents=text,
+                config=types.EmbedContentConfig(task_type="RETRIEVAL_DOCUMENT")
+            )
+            embeddings.append(result.embeddings[0].values)
+        return embeddings
+    
+    def embed_query(self, text):
+        result = self.client.models.embed_content(
+            model="text-embedding-004",
+            contents=text,
+            config=types.EmbedContentConfig(task_type="RETRIEVAL_QUERY")
+        )
+        return result.embeddings[0].values
+
 @app.get("/")
 @app.head("/")
 def home():
@@ -46,12 +73,8 @@ try:
     text_splitter = CharacterTextSplitter(chunk_size=600, chunk_overlap=120)
     textos_divididos = text_splitter.split_documents(documentos)
     
-    # ✅ CORREÇÃO: versão atualizada com API v1
-    embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004",
-        google_api_key=os.environ.get("GOOGLE_API_KEY"),
-        task_type="retrieval_document"
-    )
+    # ✅ Usando nova biblioteca google-genai diretamente
+    embeddings = GeminiEmbeddings(api_key=os.environ.get("GOOGLE_API_KEY"))
     
     vector_store = FAISS.from_documents(textos_divididos, embeddings)
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
