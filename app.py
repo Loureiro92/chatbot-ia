@@ -5,11 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
 from langchain_text_splitters import CharacterTextSplitter
-from langchain_google_genai import GoogleGenAIEmbeddings, ChatGoogleGenerativeAI
+from langchain_google_genai import GoogleGenerativeAIEmbeddings, ChatGoogleGenerativeAI
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains import create_retrieval_chain
-from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain_core.output_parsers import StrOutputParser
 
 load_dotenv()
 app = FastAPI()
@@ -23,7 +22,7 @@ app.add_middleware(
 )
 
 # =========================================================================
-# ⚙️ CONFIGURAÇÕES DA ÓTICA (Ajuste com os seus dados do Railway se necessário)
+# ⚙️ CONFIGURAÇÕES DA ÓTICA
 # =========================================================================
 EVOLUTION_API_URL = "https://evolution-api-production-dbf7.up.railway.app"
 EVOLUTION_API_KEY = "ChaveOtica2026"
@@ -37,6 +36,10 @@ def home():
 
 print("🔄 Carregando dados da ótica...")
 
+# Inicializa as variáveis como None para evitar erros caso o try falhe
+retriever = None
+rag_chain = None
+
 # Carrega a base de dados do arquivo txt
 try:
     loader = TextLoader("dados_otica.txt", encoding="utf-8")
@@ -45,7 +48,7 @@ try:
     text_splitter = CharacterTextSplitter(chunk_size=600, chunk_overlap=120)
     textos_divididos = text_splitter.split_documents(documentos)
     
-    embeddings = GoogleGenAIEmbeddings(model="models/embedding-001")
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
     vector_store = FAISS.from_documents(textos_divididos, embeddings)
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
     
@@ -62,11 +65,11 @@ try:
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", system_prompt),
-        ("human", "{input}"),
+        ("human", "Contexto complementar:\n{context}\n\nPergunta do cliente: {input}"),
     ])
     
-    question_answer_chain = create_stuff_documents_chain(llm, prompt)
-    rag_chain = create_retrieval_chain(retriever, question_answer_chain)
+    # Estrutura Moderna (Pipe |) - Não usa mais as funções que davam erro!
+    rag_chain = prompt | llm | StrOutputParser()
     
     print("🚀 IA da Ótica Pronta!")
     
@@ -80,32 +83,40 @@ async def receber_mensagem_whatsapp(request: Request):
         dados = await request.json()
         print("📥 Webhook recebido do WhatsApp!")
         
-        # Correção da Evolution API v2: Navegando na nova estrutura do JSON
+        # Garante que a IA inicializou antes de processar
+        if not retriever or not rag_chain:
+            print("❌ Erro: A IA não foi inicializada corretamente devido ao erro no arquivo txt.")
+            return {"status": "erro", "reason": "IA nao inicializada"}
+
+        # Estrutura de leitura da Evolution API v2
         data_object = dados.get("data", {})
         message_object = data_object.get("message", {})
         
-        # Ignora mensagens enviadas pelo próprio bot para evitar loops infinitos
+        # Ignora mensagens enviadas pelo próprio bot
         from_me = message_object.get("fromMe", False)
         if from_me:
-            return {"status": "ignorado", "reason": "mensagem enviada pelo próprio bot"}
+            return {"status": "ignorado", "reason": "mensagem enviada pelo proprio bot"}
             
-        # Pega o texto da mensagem do cliente (suporta texto puro ou texto estendido com link)
+        # Pega o texto da mensagem do cliente
         texto_mensagem = message_object.get("conversation", "")
         if not texto_mensagem:
             texto_mensagem = message_object.get("extendedTextMessage", {}).get("text", "")
             
-        # Pega o número de telefone do cliente para responder de volta
+        # Pega o número do cliente
         remote_jid = data_object.get("key", {}).get("remoteJid", "")
         
-        # Se veio texto e temos para quem responder, aciona o Gemini
         if texto_mensagem and remote_jid:
             print(f"💬 Mensagem do cliente: {texto_mensagem}")
+            print(f"🤖 IA processando resposta...")
             
-            # Gera a resposta com a IA com base no arquivo txt
-            resposta_ia = rag_chain.invoke({"input": texto_mensagem})
-            texto_resposta = resposta_ia["answer"]
+            # Busca os blocos de texto relevantes no dados_otica.txt
+            docs_buscados = retriever.invoke(texto_mensagem)
+            contexto_texto = "\n\n".join([doc.page_content for doc in docs_buscados])
             
-            # Monta o comando de envio para a Evolution API
+            # Gera a resposta final usando a estrutura moderna
+            texto_resposta = rag_chain.invoke({"input": texto_mensagem, "context": contexto_texto})
+            
+            # Envia de volta para a Evolution API
             url_envio = f"{EVOLUTION_API_URL}/message/sendText/{INSTANCE_NAME}"
             headers = {
                 "Content-Type": "application/json",
@@ -116,13 +127,12 @@ async def receber_mensagem_whatsapp(request: Request):
                 "text": texto_resposta
             }
             
-            # Envia a resposta de volta para o WhatsApp do cliente
             resposta_envio = requests.post(url_envio, json=payload, headers=headers)
             
             if resposta_envio.status_code in [200, 201]:
                 print(f"✅ Resposta enviada com sucesso para o cliente!")
             else:
-                print(f"❌ Erro ao enviar mensagem via Evolution API: {resposta_envio.text}")
+                print(f"❌ Erro ao enviar via Evolution API: {resposta_envio.text}")
                 
         return {"status": "processado"}
         
