@@ -48,7 +48,8 @@ try:
     text_splitter = CharacterTextSplitter(chunk_size=600, chunk_overlap=120)
     textos_divididos = text_splitter.split_documents(documentos)
     
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/embedding-001")
+    # ✅ CORREÇÃO: modelo de embedding atualizado
+    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
     vector_store = FAISS.from_documents(textos_divididos, embeddings)
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
     
@@ -68,7 +69,7 @@ try:
         ("human", "Contexto complementar:\n{context}\n\nPergunta do cliente: {input}"),
     ])
     
-    # Estrutura Moderna (Pipe |) - Não usa mais as funções que davam erro!
+    # Estrutura Moderna (Pipe |)
     rag_chain = prompt | llm | StrOutputParser()
     
     print("🚀 IA da Ótica Pronta!")
