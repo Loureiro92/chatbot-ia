@@ -48,8 +48,10 @@ try:
     text_splitter = CharacterTextSplitter(chunk_size=600, chunk_overlap=120)
     textos_divididos = text_splitter.split_documents(documentos)
     
-    # ✅ CORREÇÃO: modelo de embedding atualizado
-    embeddings = GoogleGenerativeAIEmbeddings(model="models/text-embedding-004")
+    # ✅ CORREÇÃO: modelo v1 sem v1beta
+    embeddings = GoogleGenerativeAIEmbeddings(
+        model="text-embedding-004"
+    )
     vector_store = FAISS.from_documents(textos_divididos, embeddings)
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
     
