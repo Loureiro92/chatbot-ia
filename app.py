@@ -30,19 +30,19 @@ EVOLUTION_API_KEY = "ChaveOtica2026"
 INSTANCE_NAME = "otica_bot"
 # =========================================================================
 
-# ✅ Embedding via HTTP direto na API v1 do Google (sem biblioteca)
+# ✅ Embedding via HTTP direto na API v1beta do Google
 class GeminiEmbeddings(Embeddings):
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.url = f"https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key={api_key}"
 
     def _embed(self, text: str, task_type: str) -> list:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={self.api_key}"
         payload = {
             "model": "models/text-embedding-004",
             "content": {"parts": [{"text": text}]},
             "taskType": task_type
         }
-        response = requests.post(self.url, json=payload)
+        response = requests.post(url, json=payload)
         if response.status_code != 200:
             raise Exception(f"Erro na API de embedding: {response.text}")
         return response.json()["embedding"]["values"]
@@ -75,7 +75,6 @@ try:
     textos_divididos = text_splitter.split_documents(documentos)
     print(f"✂️ Textos divididos: {len(textos_divididos)} chunk(s)")
 
-    # ✅ HTTP direto, sem biblioteca, sem v1beta!
     embeddings = GeminiEmbeddings(api_key=api_key)
     print("🧠 Gerando vetores...")
 
