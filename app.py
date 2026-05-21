@@ -30,15 +30,15 @@ EVOLUTION_API_KEY = "ChaveOtica2026"
 INSTANCE_NAME = "otica_bot"
 # =========================================================================
 
-# ✅ Embedding via HTTP direto na API v1beta do Google
+# ✅ Usando modelo correto disponível na conta
 class GeminiEmbeddings(Embeddings):
     def __init__(self, api_key: str):
         self.api_key = api_key
 
     def _embed(self, text: str, task_type: str) -> list:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key={self.api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:embedContent?key={self.api_key}"
         payload = {
-            "model": "models/text-embedding-004",
+            "model": "models/gemini-embedding-001",
             "content": {"parts": [{"text": text}]},
             "taskType": task_type
         }
@@ -82,7 +82,7 @@ try:
     retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
     llm = ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
+        model="gemini-2.0-flash",
         temperature=0.5,
         google_api_key=api_key
     )
