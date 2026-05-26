@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Provador Virtual de Óculos</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #E8D5A3;
+  --dark: #1A1A1A;
+  --dark2: #2A2A2A;
+  --dark3: #3A3A3A;
+  --light: #F8F5F0;
+  --light2: #EDE9E2;
+  --text: #1A1A1A;
+  --text2: #6B6560;
+  --text3: #9E9890;
+  --white: #FFFFFF;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--light);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  background: var(--dark);
+  padding: 20px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px;
+  font-weight: 300;
+  color: var(--gold);
+  letter-spacing: 0.12em;
+}
+.logo span { color: var(--white); font-weight: 600; }
+.tagline {
+  font-size: 11px;
+  color: var(--text3);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, var(--dark) 0%, var(--dark2) 60%, #2C2419 100%);
+  padding: 60px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(201,168,76,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(32px, 6vw, 56px);
+  font-weight: 300;
+  color: var(--white);
+  letter-spacing: 0.04em;
+  margin-bottom: 12px;
+}
+.hero h1 em { color: var(--gold); font-style: italic; }
+.hero p {
+  font-size: 15px;
+  color: var(--text3);
+  max-width: 480px;
+  margin: 0 auto 32px;
+  line-height: 1.7;
+}
+.hero-badges {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.badge {
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3);
+  color: var(--gold-light);
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+}
+
+/* MAIN LAYOUT */
+main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* CAMERA SECTION */
+.camera-section {
+  background: var(--white);
+  border-radius: var(--radius);
+  border: 1px solid var(--light2);
+  overflow: hidden;
+  margin-bottom: 40px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.06);
+}
+.camera-header {
+  background: var(--dark);
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.camera-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--white);
+  letter-spacing: 0.05em;
+}
+.camera-header .step {
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+.camera-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+@media (max-width: 700px) {
+  .camera-body { grid-template-columns: 1fr; }
+}
+.camera-view {
+  position: relative;
+  background: var(--dark);
+  aspect-ratio: 4/3;
+  overflow: hidden;
+}
+#video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+  transform: scaleX(-1);
+}
+#overlay-canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  transform: scaleX(-1);
+}
+.camera-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--text3);
+}
+.camera-placeholder svg { opacity: 0.3; }
+.camera-placeholder p { font-size: 14px; }
+.camera-controls {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  background: var(--light);
+}
+.camera-controls h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--dark);
+}
+.camera-controls p {
+  font-size: 13px;
+  color: var(--text2);
+  line-height: 1.7;
+}
+#btn-camera {
+  background: var(--dark);
+  color: var(--gold);
+  border: 1px solid var(--dark3);
+  padding: 12px 24px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+}
+#btn-camera:hover { background: var(--dark3); }
+#btn-camera.active { background: #3D1515; color: #F09595; border-color: #5A2020; }
+#status-msg {
+  font-size: 12px;
+  color: var(--gold);
+  letter-spacing: 0.05em;
+  min-height: 18px;
+}
+.selected-info {
+  background: var(--white);
+  border: 1px solid var(--light2);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+}
+.selected-info .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 4px; }
+.selected-info .value { font-size: 15px; font-weight: 500; color: var(--dark); }
+
+/* CATALOG */
+.catalog-section { margin-bottom: 40px; }
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.section-header h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 400;
+  color: var(--dark);
+}
+.section-header span {
+  font-size: 12px;
+  color: var(--text3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* FILTER TABS */
+.filter-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+.filter-tab {
+  padding: 6px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--light2);
+  background: var(--white);
+  font-size: 12px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.05em;
+}
+.filter-tab:hover { border-color: var(--gold-light); color: var(--dark); }
+.filter-tab.active { background: var(--dark); color: var(--gold); border-color: var(--dark); }
+
+/* GLASSES GRID */
+.glasses-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.glasses-card {
+  background: var(--white);
+  border: 1px solid var(--light2);
+  border-radius: var(--radius);
+  padding: 20px 16px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.glasses-card:hover {
+  border-color: var(--gold-light);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.glasses-card.selected {
+  border-color: var(--gold);
+  background: #FDFBF5;
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.glasses-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 11px;
+  color: var(--gold);
+  font-weight: 600;
+}
+.glasses-preview {
+  width: 100%;
+  height: 72px;
+  display: block;
+  margin-bottom: 12px;
+}
+.glasses-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dark);
+  margin-bottom: 3px;
+}
+.glasses-style {
+  font-size: 11px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+.glasses-colors {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.color-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.1);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.color-dot:hover { transform: scale(1.2); }
+.color-dot.active { box-shadow: 0 0 0 2px var(--white), 0 0 0 3px var(--gold); }
+
+/* HOW IT WORKS */
+.how-section {
+  background: var(--dark);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  margin-bottom: 40px;
+}
+.how-section h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 300;
+  color: var(--white);
+  margin-bottom: 32px;
+  text-align: center;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 24px;
+}
+.step-item { text-align: center; }
+.step-num {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,168,76,0.4);
+  color: var(--gold);
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+.step-item h4 {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.step-item p { font-size: 12px; color: var(--text3); line-height: 1.6; }
+
+/* CTA */
+.cta-section {
+  background: linear-gradient(135deg, #2C2419, var(--dark2));
+  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: var(--radius);
+  padding: 40px 32px;
+  text-align: center;
+}
+.cta-section h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 30px;
+  font-weight: 300;
+  color: var(--white);
+  margin-bottom: 12px;
+}
+.cta-section p { font-size: 14px; color: var(--text3); margin-bottom: 24px; }
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--gold);
+  color: var(--dark);
+  padding: 14px 32px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+}
+.cta-btn:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+/* FOOTER */
+footer {
+  background: var(--dark);
+  padding: 24px 32px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text3);
+}
+footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">ÓTICA <span>NOME</span></div>
+    <div class="tagline">Consultoria Visual Especializada</div>
+  </div>
+</header>
+
+<div class="hero">
+  <h1>Experimente antes <em>de comprar</em></h1>
+  <p>Descubra o modelo perfeito para o seu rosto com nosso provador virtual. Ative a câmera e veja como cada armação fica em você.</p>
+  <div class="hero-badges">
+    <span class="badge">12 modelos disponíveis</span>
+    <span class="badge">Detecção facial em tempo real</span>
+    <span class="badge">Gratuito e sem cadastro</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- CAMERA -->
+  <div class="camera-section">
+    <div class="camera-header">
+      <h2>Provador virtual</h2>
+      <span class="step">Passo 1 de 2 — Ative a câmera</span>
+    </div>
+    <div class="camera-body">
+      <div class="camera-view">
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="overlay-canvas"></canvas>
+        <div class="camera-placeholder" id="placeholder">
+          <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          <p>Câmera desativada</p>
+        </div>
+      </div>
+      <div class="camera-controls">
+        <h3>Veja como fica em você</h3>
+        <p>Ative a câmera, escolha um modelo no catálogo abaixo e experimente em tempo real. Totalmente privado — nenhuma imagem é salva.</p>
+        <button id="btn-camera">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+            <circle cx="12" cy="13" r="4"/>
+          </svg>
+          Ativar câmera
+        </button>
+        <p id="status-msg"></p>
+        <div class="selected-info">
+          <div class="label">Modelo selecionado</div>
+          <div class="value" id="selected-name">Nenhum — escolha abaixo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CATALOG -->
+  <div class="catalog-section">
+    <div class="section-header">
+      <h2>Catálogo de armações</h2>
+      <span id="count-label">12 modelos</span>
+    </div>
+
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">Todos</button>
+      <button class="filter-tab" data-filter="classico">Clássico</button>
+      <button class="filter-tab" data-filter="moderno">Moderno</button>
+      <button class="filter-tab" data-filter="esportivo">Esportivo</button>
+      <button class="filter-tab" data-filter="feminino">Feminino</button>
+      <button class="filter-tab" data-filter="masculino">Masculino</button>
+    </div>
+
+    <div class="glasses-grid" id="glasses-grid"></div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="how-section">
+    <h2>Como funciona</h2>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <h4>Ative a câmera</h4>
+        <p>Clique em ativar câmera e permita o acesso. Nenhuma imagem é salva ou enviada.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <h4>Escolha um modelo</h4>
+        <p>Navegue pelo catálogo e clique em qualquer armação para experimentar.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <h4>Experimente cores</h4>
+        <p>Cada modelo tem opções de cores. Clique nos pontinhos para trocar.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <h4>Agende sua consulta</h4>
+        <p>Gostou de algum? Fale com nossa equipe para uma consultoria completa.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <h2>Pronto para encontrar seus óculos perfeitos?</h2>
+    <p>Nossa consultora especializada vai analisar o formato do seu rosto e encontrar o modelo ideal para você.</p>
+    <a href="https://wa.me/5591999999999" class="cta-btn" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+      </svg>
+      Falar com consultora no WhatsApp
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  <p>© 2026 <span>Ótica Nome</span> — Provador Virtual. Todos os direitos reservados.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+// =====================================================================
+// CATÁLOGO DE ÓCULOS — Adicione/edite modelos aqui
+// =====================================================================
+const CATALOG = [
+  {
+    id: 1, name: "Classic Square", style: "Quadrado", category: ["classico","masculino"],
+    colors: ["#2C2C2A","#185FA5","#3B6D11","#993556"],
+    shape: "square", desc: "Clássico e versátil"
+  },
+  {
+    id: 2, name: "Round Retro", style: "Redondo", category: ["classico","feminino","masculino"],
+    colors: ["#2C2C2A","#BA7517","#185FA5","#993556"],
+    shape: "round", desc: "Estilo retrô atemporal"
+  },
+  {
+    id: 3, name: "Cat Eye", style: "Gatinho", category: ["feminino","moderno"],
+    colors: ["#2C2C2A","#993556","#3C3489","#BA7517"],
+    shape: "cat", desc: "Elegante e sofisticado"
+  },
+  {
+    id: 4, name: "Aviator Pro", style: "Aviador", category: ["classico","masculino","esportivo"],
+    colors: ["#BA7517","#2C2C2A","#185FA5"],
+    shape: "aviator", desc: "Ícone atemporal"
+  },
+  {
+    id: 5, name: "Oversized Glam", style: "Oversized", category: ["feminino","moderno"],
+    colors: ["#2C2C2A","#3C3489","#993556","#185FA5"],
+    shape: "oversized", desc: "Presença marcante"
+  },
+  {
+    id: 6, name: "Rimless Slim", style: "Sem aro", category: ["classico","masculino","feminino"],
+    colors: ["#888780","#BA7517","#185FA5"],
+    shape: "rimless", desc: "Minimalismo refinado"
+  },
+  {
+    id: 7, name: "Hexagon Edge", style: "Hexagonal", category: ["moderno","masculino"],
+    colors: ["#2C2C2A","#185FA5","#3B6D11"],
+    shape: "hexagon", desc: "Geométrico e moderno"
+  },
+  {
+    id: 8, name: "Butterfly", style: "Borboleta", category: ["feminino","moderno"],
+    colors: ["#993556","#3C3489","#2C2C2A","#BA7517"],
+    shape: "butterfly", desc: "Delicado e marcante"
+  },
+  {
+    id: 9, name: "Browline Classic", style: "Browline", category: ["classico","masculino"],
+    colors: ["#2C2C2A","#BA7517","#888780"],
+    shape: "browline", desc: "Personalidade forte"
+  },
+  {
+    id: 10, name: "Sport Wrap", style: "Esportivo", category: ["esportivo","masculino"],
+    colors: ["#2C2C2A","#185FA5","#3B6D11","#E24B4A"],
+    shape: "sport", desc: "Performance e estilo"
+  },
+  {
+    id: 11, name: "Oval Soft", style: "Oval", category: ["classico","feminino","masculino"],
+    colors: ["#2C2C2A","#888780","#185FA5","#993556"],
+    shape: "oval", desc: "Suave e equilibrado"
+  },
+  {
+    id: 12, name: "Rectangle Thin", style: "Retangular fino", category: ["moderno","masculino","feminino"],
+    colors: ["#888780","#2C2C2A","#BA7517","#185FA5"],
+    shape: "rectangle_thin", desc: "Contemporâneo e clean"
+  },
+];
+
+// =====================================================================
+// DESENHO DAS ARMAÇÕES
+// =====================================================================
+function drawShape(ctx, shape, color, cx, cy, scale, lineW) {
+  ctx.strokeStyle = color;
+  ctx.fillStyle = "transparent";
+  ctx.lineWidth = lineW || 2.5;
+  const s = scale || 1;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+
+  switch(shape) {
+    case "square":
+      ctx.beginPath(); ctx.roundRect(-78*s,-22*s,68*s,44*s,5*s); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(10*s,-22*s,68*s,44*s,5*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,0); ctx.lineTo(10*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-78*s,-5*s); ctx.lineTo(-115*s,-14*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,-5*s); ctx.lineTo(115*s,-14*s); ctx.stroke();
+      break;
+    case "round":
+      ctx.beginPath(); ctx.arc(-44*s,0,32*s,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(44*s,0,32*s,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-12*s,0); ctx.lineTo(12*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-76*s,-10*s); ctx.lineTo(-115*s,-18*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(76*s,-10*s); ctx.lineTo(115*s,-18*s); ctx.stroke();
+      break;
+    case "cat":
+      ctx.beginPath(); ctx.moveTo(-78*s,14*s); ctx.lineTo(-78*s,-12*s); ctx.quadraticCurveTo(-44*s,-34*s,-10*s,-8*s); ctx.lineTo(-10*s,14*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10*s,14*s); ctx.lineTo(10*s,-8*s); ctx.quadraticCurveTo(44*s,-34*s,78*s,-12*s); ctx.lineTo(78*s,14*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,4*s); ctx.lineTo(10*s,4*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-78*s,2*s); ctx.lineTo(-115*s,-8*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,2*s); ctx.lineTo(115*s,-8*s); ctx.stroke();
+      break;
+    case "aviator":
+      ctx.beginPath(); ctx.arc(-44*s,2*s,34*s,-Math.PI*0.75,Math.PI*0.85); ctx.stroke();
+      ctx.beginPath(); ctx.arc(44*s,2*s,34*s,-Math.PI*0.25,Math.PI*1.15); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,-20*s); ctx.quadraticCurveTo(0,-28*s,10*s,-20*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-78*s,-18*s); ctx.lineTo(-115*s,-22*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,-18*s); ctx.lineTo(115*s,-22*s); ctx.stroke();
+      break;
+    case "oversized":
+      ctx.beginPath(); ctx.roundRect(-88*s,-26*s,78*s,52*s,8*s); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(10*s,-26*s,78*s,52*s,8*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,0); ctx.lineTo(10*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-88*s,-5*s); ctx.lineTo(-125*s,-15*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(88*s,-5*s); ctx.lineTo(125*s,-15*s); ctx.stroke();
+      break;
+    case "rimless":
+      ctx.lineWidth = (lineW || 2.5) * 0.7;
+      ctx.beginPath(); ctx.arc(-44*s,0,30*s,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(44*s,0,30*s,0,Math.PI*2); ctx.stroke();
+      ctx.lineWidth = lineW || 2.5;
+      ctx.beginPath(); ctx.moveTo(-14*s,-4*s); ctx.lineTo(14*s,-4*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-74*s,-10*s); ctx.lineTo(-115*s,-18*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(74*s,-10*s); ctx.lineTo(115*s,-18*s); ctx.stroke();
+      break;
+    case "hexagon":
+      const hx = 32*s, hy = 20*s;
+      [[-44*s,0],[44*s,0]].forEach(([ox,oy]) => {
+        ctx.beginPath();
+        ctx.moveTo(ox,oy-hy); ctx.lineTo(ox+hx,oy-hy/2); ctx.lineTo(ox+hx,oy+hy/2);
+        ctx.lineTo(ox,oy+hy); ctx.lineTo(ox-hx,oy+hy/2); ctx.lineTo(ox-hx,oy-hy/2);
+        ctx.closePath(); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.moveTo(-12*s,0); ctx.lineTo(12*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-76*s,-10*s); ctx.lineTo(-115*s,-18*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(76*s,-10*s); ctx.lineTo(115*s,-18*s); ctx.stroke();
+      break;
+    case "butterfly":
+      ctx.beginPath(); ctx.moveTo(-78*s,12*s); ctx.bezierCurveTo(-78*s,-30*s,-10*s,-30*s,-10*s,0*s); ctx.lineTo(-10*s,12*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,12*s); ctx.bezierCurveTo(78*s,-30*s,10*s,-30*s,10*s,0*s); ctx.lineTo(10*s,12*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,4*s); ctx.lineTo(10*s,4*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-78*s,0); ctx.lineTo(-115*s,-10*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,0); ctx.lineTo(115*s,-10*s); ctx.stroke();
+      break;
+    case "browline":
+      ctx.lineWidth = (lineW||2.5)*2;
+      ctx.beginPath(); ctx.moveTo(-78*s,-10*s); ctx.lineTo(-10*s,-10*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10*s,-10*s); ctx.lineTo(78*s,-10*s); ctx.stroke();
+      ctx.lineWidth = lineW||2.5;
+      ctx.beginPath(); ctx.moveTo(-78*s,-10*s); ctx.lineTo(-78*s,20*s); ctx.quadraticCurveTo(-78*s,28*s,-44*s,28*s); ctx.quadraticCurveTo(-10*s,28*s,-10*s,20*s); ctx.lineTo(-10*s,-10*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10*s,-10*s); ctx.lineTo(10*s,20*s); ctx.quadraticCurveTo(10*s,28*s,44*s,28*s); ctx.quadraticCurveTo(78*s,28*s,78*s,20*s); ctx.lineTo(78*s,-10*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,8*s); ctx.lineTo(10*s,8*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-78*s,0); ctx.lineTo(-115*s,-12*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(78*s,0); ctx.lineTo(115*s,-12*s); ctx.stroke();
+      break;
+    case "sport":
+      ctx.beginPath(); ctx.moveTo(-90*s,-10*s); ctx.bezierCurveTo(-90*s,-28*s,-10*s,-28*s,-10*s,-10*s); ctx.lineTo(-10*s,18*s); ctx.bezierCurveTo(-10*s,26*s,-90*s,26*s,-90*s,18*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(90*s,-10*s); ctx.bezierCurveTo(90*s,-28*s,10*s,-28*s,10*s,-10*s); ctx.lineTo(10*s,18*s); ctx.bezierCurveTo(10*s,26*s,90*s,26*s,90*s,18*s); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,0); ctx.lineTo(10*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-90*s,0); ctx.lineTo(-120*s,-5*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(90*s,0); ctx.lineTo(120*s,-5*s); ctx.stroke();
+      break;
+    case "oval":
+      ctx.beginPath(); ctx.ellipse(-44*s,0,38*s,26*s,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(44*s,0,38*s,26*s,0,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-6*s,-2*s); ctx.lineTo(6*s,-2*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-82*s,-8*s); ctx.lineTo(-115*s,-16*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(82*s,-8*s); ctx.lineTo(115*s,-16*s); ctx.stroke();
+      break;
+    case "rectangle_thin":
+      ctx.beginPath(); ctx.roundRect(-80*s,-15*s,70*s,30*s,3*s); ctx.stroke();
+      ctx.beginPath(); ctx.roundRect(10*s,-15*s,70*s,30*s,3*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10*s,0); ctx.lineTo(10*s,0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-80*s,-3*s); ctx.lineTo(-115*s,-10*s); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(80*s,-3*s); ctx.lineTo(115*s,-10*s); ctx.stroke();
+      break;
+  }
+  ctx.restore();
+}
+
+// =====================================================================
+// STATE
+// =====================================================================
+let selectedId = null;
+let selectedColorIdx = {};
+let stream = null;
+let cameraActive = false;
+let faceApiLoaded = false;
+let animFrame = null;
+let currentFilter = "all";
+
+CATALOG.forEach(g => { selectedColorIdx[g.id] = 0; });
+
+// =====================================================================
+// BUILD CATALOG
+// =====================================================================
+function buildCatalog(filter) {
+  const grid = document.getElementById("glasses-grid");
+  grid.innerHTML = "";
+  const items = filter === "all" ? CATALOG : CATALOG.filter(g => g.category.includes(filter));
+  document.getElementById("count-label").textContent = items.length + " modelos";
+
+  items.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "glasses-card" + (g.id === selectedId ? " selected" : "");
+    card.dataset.id = g.id;
+
+    const canvas = document.createElement("canvas");
+    canvas.className = "glasses-preview";
+    canvas.width = 280; canvas.height = 72;
+    card.appendChild(canvas);
+
+    const name = document.createElement("div");
+    name.className = "glasses-name";
+    name.textContent = g.name;
+    card.appendChild(name);
+
+    const style = document.createElement("div");
+    style.className = "glasses-style";
+    style.textContent = g.style;
+    card.appendChild(style);
+
+    const colors = document.createElement("div");
+    colors.className = "glasses-colors";
+    g.colors.forEach((c, i) => {
+      const dot = document.createElement("div");
+      dot.className = "color-dot" + (i === (selectedColorIdx[g.id]||0) ? " active" : "");
+      dot.style.background = c;
+      dot.addEventListener("click", e => {
+        e.stopPropagation();
+        selectedColorIdx[g.id] = i;
+        buildCatalog(currentFilter);
+        if (g.id === selectedId) drawPreview(canvas, g);
+      });
+      colors.appendChild(dot);
+    });
+    card.appendChild(colors);
+
+    card.addEventListener("click", () => {
+      selectedId = g.id;
+      document.getElementById("selected-name").textContent = g.name + " — " + g.style;
+      buildCatalog(currentFilter);
+    });
+
+    grid.appendChild(card);
+    drawPreview(canvas, g);
+  });
+}
+
+function drawPreview(canvas, g) {
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const color = g.colors[selectedColorIdx[g.id]||0];
+  drawShape(ctx, g.shape, color, canvas.width/2, canvas.height/2, 0.85, 2);
+}
+
+// FILTERS
+document.querySelectorAll(".filter-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".filter-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    currentFilter = tab.dataset.filter;
+    buildCatalog(currentFilter);
+  });
+});
+
+// =====================================================================
+// CAMERA + FACE API
+// =====================================================================
+async function loadFaceApi() {
+  const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model";
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL);
+    faceApiLoaded = true;
+    document.getElementById("status-msg").textContent = "✓ Detecção facial ativa";
+  } catch(e) {
+    document.getElementById("status-msg").textContent = "Câmera ativa — posicione o rosto";
+  }
+}
+
+async function cameraLoop() {
+  const video = document.getElementById("video");
+  const canvas = document.getElementById("overlay-canvas");
+  const ctx = canvas.getContext("2d");
+
+  async function loop() {
+    if (!cameraActive) return;
+    canvas.width = video.videoWidth || 640;
+    canvas.height = video.videoHeight || 480;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (faceApiLoaded && selectedId) {
+      try {
+        const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 })).withFaceLandmarks(true);
+        if (det) {
+          const g = CATALOG.find(x => x.id === selectedId);
+          if (g) {
+            const lm = det.landmarks;
+            const le = lm.getLeftEye();
+            const re = lm.getRightEye();
+            const scX = canvas.width / video.videoWidth;
+            const scY = canvas.height / video.videoHeight;
+            const lx = le.reduce((a,p)=>a+p.x,0)/le.length * scX;
+            const ly = le.reduce((a,p)=>a+p.y,0)/le.length * scY;
+            const rx = re.reduce((a,p)=>a+p.x,0)/re.length * scX;
+            const ry = re.reduce((a,p)=>a+p.y,0)/re.length * scY;
+            const dist = Math.sqrt((rx-lx)**2+(ry-ly)**2);
+            const scale = dist / 88;
+            const angle = Math.atan2(ry-ly, rx-lx);
+            const cx = (lx+rx)/2;
+            const cy = (ly+ry)/2;
+            const color = g.colors[selectedColorIdx[g.id]||0];
+
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(angle);
+            drawShape(ctx, g.shape, color, 0, 0, scale, 2.5*scale);
+            ctx.restore();
+            document.getElementById("status-msg").textContent = "✓ Rosto detectado";
+          }
+        } else {
+          document.getElementById("status-msg").textContent = "Posicione o rosto na câmera";
+        }
+      } catch(e) {}
+    }
+    animFrame = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+document.getElementById("btn-camera").addEventListener("click", async () => {
+  const btn = document.getElementById("btn-camera");
+  const video = document.getElementById("video");
+  const placeholder = document.getElementById("placeholder");
+
+  if (!cameraActive) {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } } });
+      video.srcObject = stream;
+      await video.play();
+      video.style.display = "block";
+      placeholder.style.display = "none";
+      cameraActive = true;
+      btn.textContent = "✕ Desativar câmera";
+      btn.classList.add("active");
+      document.getElementById("status-msg").textContent = "Carregando detecção facial...";
+      loadFaceApi();
+      cameraLoop();
+      if (!selectedId && CATALOG.length > 0) {
+        selectedId = CATALOG[0].id;
+        document.getElementById("selected-name").textContent = CATALOG[0].name + " — " + CATALOG[0].style;
+        buildCatalog(currentFilter);
+      }
+    } catch(e) {
+      document.getElementById("status-msg").textContent = "Permissão de câmera negada";
+    }
+  } else {
+    cameraActive = false;
+    if (animFrame) cancelAnimationFrame(animFrame);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    video.style.display = "none";
+    placeholder.style.display = "flex";
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg> Ativar câmera`;
+    btn.classList.remove("active");
+    document.getElementById("status-msg").textContent = "";
+    const canvas = document.getElementById("overlay-canvas");
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+  }
+});
+
+// INIT
+buildCatalog("all");
+</script>
+</body>
+</html>

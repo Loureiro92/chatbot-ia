@@ -1,6 +1,8 @@
 import os
 import requests
 from fastapi import FastAPI, Request
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from langchain_community.document_loaders import TextLoader
@@ -30,7 +32,7 @@ EVOLUTION_API_KEY = "ChaveOtica2026"
 INSTANCE_NAME = "otica_bot"
 # =========================================================================
 
-# ✅ Usando modelo correto disponível na conta
+# ✅ Embedding via HTTP direto na API v1beta do Google
 class GeminiEmbeddings(Embeddings):
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -57,6 +59,11 @@ class GeminiEmbeddings(Embeddings):
 @app.head("/")
 def home():
     return {"status": "Servidor da Ótica online!"}
+
+# ✅ ROTA DO PROVADOR VIRTUAL
+@app.get("/provador")
+def provador():
+    return FileResponse("provador_virtual.html")
 
 print("🔄 Carregando dados da ótica...")
 
@@ -92,6 +99,9 @@ try:
         "Use os seguintes fragmentos de contexto para responder à pergunta do cliente. "
         "Se não souber a resposta com base no contexto, diga educadamente que não possui essa informação "
         "e que vai encaminhar para um atendente humano.\n\n"
+        "Quando o cliente perguntar sobre experimentar óculos, provar óculos, ver como fica, "
+        "ou qualquer variação disso, envie o link do provador virtual: "
+        "https://chatbot-ia-76g7.onrender.com/provador\n\n"
         "Contexto:\n{context}"
     )
 
