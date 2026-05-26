@@ -61,10 +61,10 @@ def home():
     return {"status": "Servidor da Ótica online!"}
 
 # ✅ ROTA DO PROVADOR VIRTUAL
+# Por isso:
 @app.get("/provador")
 def provador():
-    return FileResponse("provador_virtual.html")
-
+    return FileResponse(os.path.join(os.path.dirname(__file__), "provador_virtual.html"))
 print("🔄 Carregando dados da ótica...")
 
 retriever = None
